@@ -199,7 +199,7 @@ g = ggplot(plotdata, aes(y = plotdata$population, x = plotdata$diseasestage)) +
     ggtitle("prevalence of different stages of CKD in the 2008 population")
 g
 # We regarded the people who were recorded as being in more than one stage in the same year as multiple samples
-# This plotting is created to show the prevalence of different stages, so we should focus more on stages.
+# This plotting is creted to show the prevalence of different stages, so we should focus more on stages.
 
 # 2.b
 # In this question, we need to get the population percentage of CKD in 2009. 
