@@ -34,43 +34,10 @@ subBeneficiary2010$Birth_month  <- month2010
 subBeneficiary = rbind(subBeneficiary2008, subBeneficiary2009, subBeneficiary2010)
 
 # Chi-squared Test of Independence on 11 chronic conditions(at 0.05 significance level)
-
-
-# 1. Chronic Condition: Alzheimer or related disorders or senile
-tb1 = table(subBeneficiary$SP_ALZHDMTA, subBeneficiary$Birth_month)
-
-# 2. Chronic Condition: Chronic Condition: Heart Failure
-tb2 = table(subBeneficiary$SP_CHF, subBeneficiary$Birth_month)
-
-# 3. Chronic Condition: Chronic Kidney Disease
-tb3 = table(subBeneficiary$SP_CHRNKIDN, subBeneficiary$Birth_month)
-
-# 4. Chronic Condition: Cancer
-tb4 = table(subBeneficiary$SP_CNCR, subBeneficiary$Birth_month)
-
-# 5. Chronic Condition: Chronic Obstructive Pulmonary Disease
-tb5 = table(subBeneficiary$SP_COPD, subBeneficiary$Birth_month)
-
-# 6. Chronic Condition: Chronic Condition: Depression
-tb6 = table(subBeneficiary$SP_DEPRESSN, subBeneficiary$Birth_month)
-
-# 7. Chronic Condition: Chronic Condition: Diabetes
-tb7 = table(subBeneficiary$SP_DIABETES, subBeneficiary$Birth_month)
-
-# 8. Chronic Condition: Chronic Condition:  Ischemic Heart Disease
-tb8 = table(subBeneficiary$SP_ISCHMCHT, subBeneficiary$Birth_month)
-
-# 9. Chronic Condition: Chronic Condition: Osteoporosis
-tb9 = table(subBeneficiary$SP_OSTEOPRS, subBeneficiary$Birth_month)
-
-# 10. Chronic Condition: Chronic Condition: rheumatoid arthritis and osteoarthritis (RA/OA)
-tb10 = table(subBeneficiary$SP_RA_OA, subBeneficiary$Birth_month)
-
-# 11. Chronic Condition: Chronic Condition: Chronic Condition: Stroke/transient Ischemic Attack
-tb11 = table(subBeneficiary$SP_STRKETIA, subBeneficiary$Birth_month)
-
-# tblist contains all chronic condition tables 
-tblist = list(tb1, tb2, tb3, tb4, tb5, tb6, tb7, tb8, tb9, tb10, tb11)
+tblist1 = c()
+for(i in 1:11){
+  tblist1 = c(tblist, table(subBeneficiary[,12+i], subBeneficiary[,33]))
+}
 
 # plist contains all p values of 11 chronic conditions
 plist = NULL
@@ -132,7 +99,7 @@ for (i in 1:length(a2Inpatient$DESYNPUF_ID)){
   for(j in c(21:30)){    
     if(a2Inpatient[,j][i] %in% ICD){
       a2Inpatient[,j][i] = as.integer(a2Inpatient[,j][i])%%10
-      cat("in i row :", i, " j column", j, " New Admiting ICD-9 : ", a2Inpatient[,j][i], "\n" )
+      #cat("in i row :", i, " j column", j, " New Admiting ICD-9 : ", a2Inpatient[,j][i], "\n" )
     }
     else {
       a2Inpatient[,j][i] = 0
@@ -144,7 +111,7 @@ for (i in 1:length(a2Outpatient$DESYNPUF_ID)){
   for(j in c(13:22)){  
     if(a2Outpatient[,j][i] %in% ICD){
       a2Outpatient[,j][i] = as.integer(a2Outpatient[,j][i])%%10
-      cat("in i row :", i, " j column", j, " New Admiting ICD-9 : ", a2Outpatient[,j][i], "\n" )
+      #cat("in i row :", i, " j column", j, " New Admiting ICD-9 : ", a2Outpatient[,j][i], "\n" )
     }
     else {
       a2Outpatient[,j][i] = 0
@@ -157,7 +124,7 @@ for (i in 1:length(a2Outpatient$DESYNPUF_ID)){
 
 statkidney = list(rep(0, 10))
 
-# Count the number of patients in stage 1,2, ..., 9
+# Count the number of patients in stage 1,2, ..., 9 (7 and 8 are meaningless)
 for (i in 1:length(a2Inpatient$DESYNPUF_ID)){
   for(j in c(21:30)){
     if(a2Inpatient[,j][i] %in% c(1, 2, 3, 4, 5, 6, 9)){
@@ -185,8 +152,7 @@ for (i in 1:length(a2Inpatient$DESYNPUF_ID)){
       nonkidney = 1
       break
     } 
-  }   
-  
+  }     
   if(nonkidney == 0){
     statkidney[[1]][1] = statkidney[[1]][1] + 1
   }
@@ -200,7 +166,6 @@ for (i in 1:length(a2Outpatient$DESYNPUF_ID)){
       break
     } 
   } 
-  
   if(nonkidney == 0){
     statkidney[[1]][1] = statkidney[[1]][1] + 1
   }
@@ -234,8 +199,7 @@ g = ggplot(plotdata, aes(y = plotdata$population, x = plotdata$diseasestage)) +
     ggtitle("prevalence of different stages of CKD in the 2008 population")
 g
 # We regarded the people who were recorded as being in more than one stage in the same year as multiple samples
-# Because this plotting is creted to show the prevalence of different stages, so we should focus more on stages.
-# Even though some people may be recorded in more than one stage, they are representing samples in different stages. 
+# This plotting is creted to show the prevalence of different stages, so we should focus more on stages.
 
 # 2.b
 # In this question, we need to get the population percentage of CKD in 2009. 
@@ -310,7 +274,6 @@ for (i in 1:length(a2Inpatient$DESYNPUF_ID)){
       break
     } 
   }   
-  
   if(nonkidney == 0){
     statkidney[[1]][1] = statkidney[[1]][1] + 1
   }
@@ -324,7 +287,6 @@ for (i in 1:length(a2Outpatient$DESYNPUF_ID)){
       break
     } 
   } 
-  
   if(nonkidney == 0){
     statkidney[[1]][1] = statkidney[[1]][1] + 1
   }
@@ -341,9 +303,21 @@ namekidney = c("stage 0", "stage 1", "stage 2", "stage 3", "stage 4", "stage 5",
 plotdata2009  = data.frame(statkidney, namekidney)
 names(plotdata2009) = c("population", "diseasestage")
 
-# Plot the contingency table indicating transitions between stages from 2008 to 2009
-plotodata
-plotodata2009
+# Plot the population percentage indicating transitions between stages from 2008 to 2009
+plotdata$year = "2008"
+plotdata2009$year = "2009"
+plot2b = rbind(plotdata, plotdata2009)
+ggplot(plot2b, aes(x = diseasestage, y = population)) +  geom_line(aes(group=year, colour=year)) + 
+       stat_smooth(se=FALSE, span=0.5)  
+
+# Create the table of 2008 and 2009 population of CKD
+plot2b = cbind(plotdata$population, plotdata2009$population)
+table2b = as.matrix(plot2b)
+colnames(table2b) = c("2008","2009")
+rownames(table2b) = plotdata$diseasestage
+table2b <- as.table(table2b)
+table2b
+
 
 ##############################CUT-OFF##############################
 # 3.b
