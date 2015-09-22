@@ -97,36 +97,36 @@ baseline_rmse <- sqrt(mean((mean(log_reimb) - log_reimb)^2))
 
 
 for(i in 1:length(Beneficiary2009_3$DESYNPUF_ID)){
-if(Beneficiary2009_3$reimbursement_amount[i]<5000){
-  Beneficiary2009_3$reimbursement_class[i] = "low"
-}else if(Beneficiary2009_3$reimbursement_amount[i]<15000){
-  Beneficiary2009_3$reimbursement_class[i] = "medium"
-}else if(Beneficiary2009_3$reimbursement_amount[i]<25000){
-  Beneficiary2009_3$reimbursement_class[i] = "medium high"
-}else {
-  Beneficiary2009_3$reimbursement_class[i] = "high"
-}
+  if(Beneficiary2009_3$reimbursement_amount[i]<5000){
+    Beneficiary2009_3$reimbursement_class[i] = "low"
+  }else if(Beneficiary2009_3$reimbursement_amount[i]<15000){
+    Beneficiary2009_3$reimbursement_class[i] = "medium"
+  }else if(Beneficiary2009_3$reimbursement_amount[i]<25000){
+    Beneficiary2009_3$reimbursement_class[i] = "medium high"
+  }else {
+    Beneficiary2009_3$reimbursement_class[i] = "high"
+  }
 }
 #
 
 # The getdate function helps get the date of a numeric 
 getdate <- function(x) {
-date = as.integer(x)
-year = as.character(floor(date/10000))
-day = as.character(date%%100)
-month = as.character(floor((date%%10000)/100))
-date = paste(year, month, day, sep="-")
+  date = as.integer(x)
+  year = as.character(floor(date/10000))
+  day = as.character(date%%100)
+  month = as.character(floor((date%%10000)/100))
+  date = paste(year, month, day, sep="-")
 }
 
 # Create an age variable from birth date and death date 
 for(i in 1:length(Beneficiary2009_3$DESYNPUF_ID)){  
-if( is.na(Beneficiary2009_3$BENE_DEATH_DT[i])){
-  Beneficiary2009_3$BENE_DEATH_DT[i] = paste(Beneficiary2009_3$year[i], "1231", sep="")
-}
+  if( is.na(Beneficiary2009_3$BENE_DEATH_DT[i])){
+    Beneficiary2009_3$BENE_DEATH_DT[i] = paste(Beneficiary2009_3$year[i], "1231", sep="")
+  }
 }  
 
 for(i in 1:length(Beneficiary2009_3$DESYNPUF_ID)){
-Beneficiary2009_3$age[i] = floor(as.numeric(as.Date(getdate(Beneficiary2009_3$BENE_DEATH_DT[i])) - as.Date(getdate(Beneficiary2009_3$BENE_BIRTH_DT[i])))/365)  
+  Beneficiary2009_3$age[i] = floor(as.numeric(as.Date(getdate(Beneficiary2009_3$BENE_DEATH_DT[i])) - as.Date(getdate(Beneficiary2009_3$BENE_BIRTH_DT[i])))/365)  
 }
 
 # Ultilize age/gender/state/ and all the chronic disease flags as the features in the cluster model.
@@ -139,38 +139,18 @@ west = c(3, 5, 6, 13, 27, 29, 32, 38, 46, 50, 53)
 northeast = c(7, 20, 22, 30, 31, 33, 39, 41, 47)
 south = c(1, 4, 8, 10, 11, 18, 19, 21, 25, 34, 37, 42, 44, 45, 49, 51)
 for(i in 1:length(clusterBeneficiary2009_3$BENE_SEX_IDENT_CD)){
-if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% midwest){
-  clusterBeneficiary2009_3$SP_STATE_CODE[i] = 1
-}else if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% west){
-  clusterBeneficiary2009_3$SP_STATE_CODE[i] = 2
-}else if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% northeast){
-  clusterBeneficiary2009_3$SP_STATE_CODE[i] = 3
-}else if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% south){
-  clusterBeneficiary2009_3$SP_STATE_CODE[i] = 4
-}else{
-  clusterBeneficiary2009_3$SP_STATE_CODE[i] = 5
+  if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% midwest){
+    clusterBeneficiary2009_3$SP_STATE_CODE[i] = 1
+  }else if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% west){
+    clusterBeneficiary2009_3$SP_STATE_CODE[i] = 2
+  }else if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% northeast){
+    clusterBeneficiary2009_3$SP_STATE_CODE[i] = 3
+  }else if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% south){
+    clusterBeneficiary2009_3$SP_STATE_CODE[i] = 4
+  }else{
+    clusterBeneficiary2009_3$SP_STATE_CODE[i] = 5
+  }
 }
-}
-
-# K-means cluster to clusterBeneficiary2009_3, we create k clusters
-Km = function(x){
-kc = kmeans(clusterBeneficiary2009_3, x)
-#table(Beneficiary2009_3$reimbursement_class, kc$cluster)
-# Plot the clusters and their centres.
-#plot(clusterBeneficiary2009_3[c("age", "SP_STATE_CODE")], col=kc$cluster)
-# Build model to predict reimbursement amounts using clusters
-clusterBeneficiary2009_3$cluster = kc$cluster
-clusterBeneficiary2009_3$reimbursement = log(Beneficiary2009_3$reimbursement_amount+1)
-
-# Divide the data in Beneficiary2009 into k clusters
-Clusterlist = list()
-for(i in 1:x){
-  kcluster = subset(clusterBeneficiary2009_3, cluster == i)
-  kcluster$cluster = NULL
-  Clusterlist = c(Clusterlist, kcluster)
-}
-return(Clusterlist)
-#}
 
 # Build SVM model and evaluate the prediction by SME
 # Divide cluster 1 into a 70/30 train/test split
@@ -197,10 +177,29 @@ GetClusterRMSE = function(dataset){
   
   return(RMSEcluster)
 }
-GetClusterRMSE(K_means(5)[1])
 
-# Get the whole RMSEclusterError with k = 4 
-RMSEclusterError = GetClusterRMSE(K_means(4)[1]) + GetClusterRMSE(K_means(4)[2]) +
-  GetClusterRMSE(K_means(4)[3]) + GetClusterRMSE(K_means(4)[4])
+# K-means cluster to clusterBeneficiary2009_3, we create k clusters and calculate the RMSE of each clusters
+KMcluster = function(x){
+  kc = kmeans(clusterBeneficiary2009_3, x)
+  #table(Beneficiary2009_3$reimbursement_class, kc$cluster)
+  # Plot the clusters and their centres.
+  #plot(clusterBeneficiary2009_3[c("age", "SP_STATE_CODE")], col=kc$cluster)
+  # Build model to predict reimbursement amounts using clusters
+  clusterBeneficiary2009_3$cluster = kc$cluster
+  clusterBeneficiary2009_3$reimbursement = log(Beneficiary2009_3$reimbursement_amount+1)
+  
+  # Divide the data in Beneficiary2009 into k clusters
+  Clusterlist = list()
+  for(i in 1:x){
+    kcluster = subset(clusterBeneficiary2009_3, cluster == i)
+    kcluster$cluster = NULL
+    ClusterRMSE = GetClusterRMSE(kcluster)
+    Clusterlist = c(Clusterlist, ClusterRMSE)
+  }
+  return(Clusterlist)
+}
+KMcluster(5)
 
+# Get the whole RMSEclusterError
+RMSEclusterError = sum(KMcluster(5))
 cat(RMSEclusterError)
