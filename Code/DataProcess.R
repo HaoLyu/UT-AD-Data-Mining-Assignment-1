@@ -228,11 +228,280 @@ percent <- function(x, digits = 3, format = "f", ...) {
 
 g = ggplot(plotdata, aes(y = plotdata$population, x = plotdata$diseasestage)) + 
     geom_point()+scale_y_continuous(labels=percent) +
-    geom_text(aes(label=percent(population)),hjust=-0.3, vjust=0.3, size =4) +
+    geom_text(aes(label=percent(population)),hjust=-0.2, vjust=0, size =2.3) +
     xlab("disease stage") +
     ylab("population percentage") +
     ggtitle("prevalence of different stages of CKD in the 2008 population")
-
+g
 # We regarded the people who were recorded as being in more than one stage in the same year as multiple samples
 # Because this plotting is creted to show the prevalence of different stages, so we should focus more on stages.
 # Even though some people may be recorded in more than one stage, they are representing samples in different stages. 
+
+# 2.b
+# In this question, we need to get the population percentage of CKD in 2009. 
+# Copy a new list a2Inpatient/a2Outpatient from Inpatient and Outpatient and characterize some variables
+a2Inpatient = Inpatient
+a2Inpatient[,c(21:30)] <- sapply(a2Inpatient[,c(21:30)], as.character) 
+a2Outpatient = Outpatient
+a2Outpatient[,c(13:22)] <- sapply(a2Outpatient[,c(13:22)], as.character) 
+
+# a2Inpatient/Outpatient should only contain data in 2009
+a2Inpatient = subset(subset(a2Inpatient, a2Inpatient$CLM_ADMSN_DT>20090000),a2Inpatient$CLM_ADMSN_DT<20100000)
+a2Outpatient = subset(subset(a2Outpatient, a2Outpatient$CLM_ADMSN_DT>20090000),a2Outpatient$CLM_ADMSN_DT<20100000)
+
+# Transfer codes in ICD9_DGNS_CD_1, ICD9_DGNS_CD_2, ..., ICD9_DGNS_CD_10 to simple interger in a2Inpatient and a2Outpatient
+# 0 means not related to chronic kidney disease, 1 measn 5851, 2 means 5852, ..., 9 means 5859
+
+for (i in 1:length(a2Inpatient$DESYNPUF_ID)){ 
+  for(j in c(21:30)){    
+    if(a2Inpatient[,j][i] %in% ICD){
+      a2Inpatient[,j][i] = as.integer(a2Inpatient[,j][i])%%10
+      cat("in i row :", i, " j column", j, " New Admiting ICD-9 : ", a2Inpatient[,j][i], "\n" )
+    }
+    else {
+      a2Inpatient[,j][i] = 0
+    }  
+  }
+}
+
+for (i in 1:length(a2Outpatient$DESYNPUF_ID)){ 
+  for(j in c(13:22)){  
+    if(a2Outpatient[,j][i] %in% ICD){
+      a2Outpatient[,j][i] = as.integer(a2Outpatient[,j][i])%%10
+      cat("in i row :", i, " j column", j, " New Admiting ICD-9 : ", a2Outpatient[,j][i], "\n" )
+    }
+    else {
+      a2Outpatient[,j][i] = 0
+    }   
+  }
+}
+
+# Make a statistics of kidney disease in a2Inpatient and a2Outpatient
+# statkidney is a list containing the count of kidney patients and non-kidney patients
+
+statkidney = list(rep(0, 10))
+
+# Count the number of patients in stage 1,2, ..., 9
+for (i in 1:length(a2Inpatient$DESYNPUF_ID)){
+  for(j in c(21:30)){
+    if(a2Inpatient[,j][i] %in% c(1, 2, 3, 4, 5, 6, 9)){
+      count = as.integer(a2Inpatient[,j][i]) 
+      statkidney[[1]][count+1] = statkidney[[1]][count+1] + 1
+    }
+  }
+}
+
+for (i in 1:length(a2Outpatient$DESYNPUF_ID)){
+  for(j in c(13:22)){
+    if(a2Outpatient[,j][i] %in% c(1, 2, 3, 4, 5, 6, 9)){
+      count = as.integer(a2Outpatient[,j][i]) 
+      statkidney[[1]][count+1] = statkidney[[1]][count+1] + 1
+    }
+  }
+}
+
+# Count the number of patients in stage 0 (people with no CKD)
+
+for (i in 1:length(a2Inpatient$DESYNPUF_ID)){
+  nonkidney = 0  
+  for(j in c(21:30)){
+    if(a2Inpatient[,j][i] %in% c(1, 2, 3, 4, 5, 6, 9)){
+      nonkidney = 1
+      break
+    } 
+  }   
+  
+  if(nonkidney == 0){
+    statkidney[[1]][1] = statkidney[[1]][1] + 1
+  }
+}
+
+for (i in 1:length(a2Outpatient$DESYNPUF_ID)){
+  nonkidney = 0 
+  for(j in c(21:30)){
+    if(a2Outpatient[,j][i] %in% c(1, 2, 3, 4, 5, 6, 9)){
+      nonkidney = 1
+      break
+    } 
+  } 
+  
+  if(nonkidney == 0){
+    statkidney[[1]][1] = statkidney[[1]][1] + 1
+  }
+}
+
+# Remove the blank position in statkidney
+statkidney = statkidney[[1]][-8:-9]
+
+# Convert the population count number to population percentage 
+statkidney = statkidney/(length(a2Inpatient$DESYNPUF_ID) + length(a2Outpatient$DESYNPUF_ID))
+
+# Create a data frame plotdata2009 to plot
+namekidney = c("stage 0", "stage 1", "stage 2", "stage 3", "stage 4", "stage 5", "stage 6", "stage 9")
+plotdata2009  = data.frame(statkidney, namekidney)
+names(plotdata2009) = c("population", "diseasestage")
+
+# Plot the contingency table indicating transitions between stages from 2008 to 2009
+plotodata
+plotodata2009
+
+##############################CUT-OFF##############################
+# 3.b
+# Copy Beneficiary2008 and Beneficiary2009
+Beneficiary2008_3 = Beneficiary2008
+Beneficiary2009_3 = Beneficiary2009
+
+# Characterize variables which are related to reimbursement
+Beneficiary2008_3[,c(23:32)] = lapply(lapply(Beneficiary2008_3[,c(23:32)], as.character), as.integer)
+Beneficiary2009_3[,c(23:32)] = lapply(lapply(Beneficiary2009_3[,c(23:32)], as.character), as.integer)
+
+# Add a new variable reimbursement_amount into Beneficiary2008_3 and Beneficiary2009_3
+Beneficiary2008_3$reimbursement_amount = Beneficiary2008_3$MEDREIMB_IP + Beneficiary2008_3$BENRES_IP + Beneficiary2008_3$PPPYMT_IP + 
+                                         Beneficiary2008_3$MEDREIMB_OP + Beneficiary2008_3$BENRES_OP + Beneficiary2008_3$PPPYMT_OP +
+                                         Beneficiary2008_3$MEDREIMB_CAR + Beneficiary2008_3$BENRES_CAR + Beneficiary2008_3$PPPYMT_CAR
+
+
+
+Beneficiary2009_3$reimbursement_amount = Beneficiary2009_3$MEDREIMB_IP + Beneficiary2009_3$BENRES_IP + Beneficiary2009_3$PPPYMT_IP + 
+                                         Beneficiary2009_3$MEDREIMB_OP + Beneficiary2009_3$BENRES_OP + Beneficiary2009_3$PPPYMT_OP +
+                                         Beneficiary2009_3$MEDREIMB_CAR + Beneficiary2009_3$BENRES_CAR + Beneficiary2009_3$PPPYMT_CAR
+
+# Distribution of reimbursement in 2008 and 2009
+library(ggplot2)
+Beneficiary2008_3$year = "2008"
+Beneficiary2009_3$year = "2009"
+Beneficiary0809_3 <- rbind(Beneficiary2008_3, Beneficiary2009_3)
+ggplot(Beneficiary0809_3, aes(reimbursement_amount, fill = year )) + geom_histogram(alpha = 1) + 
+  scale_x_continuous(limits = c(0, 100000))
+
+# Randomly pick 1000 samples from 2008 and 2009 data. 
+Beneficiary2008_3_sample = Beneficiary2008_3[sample(nrow(Beneficiary2008_3),1000),]
+Beneficiary2009_3_sample = Beneficiary2009_3[sample(nrow(Beneficiary2009_3),1000),]
+Beneficiary0809_3_sample <- rbind(Beneficiary2008_3_sample, Beneficiary2009_3_sample)
+
+# Caluculate the mean of each group
+library(plyr)
+mu <- ddply(Beneficiary0809_3_sample, "year", summarise, grp.mean=mean(reimbursement_amount))
+head(mu)
+
+# Fit the mean line and plot it.
+ggplot(Beneficiary0809_3_sample, aes(reimbursement_amount, fill = year )) + geom_histogram(alpha = 1) + 
+       scale_x_continuous(limits = c(0, 30000)) + 
+       geom_vline(data=mu, aes(xintercept=grp.mean, color=year),linetype="dashed")
+
+
+# 3.d
+# Ultilize beneficiary data in  2009
+# Convert some variables and add a new variable reimbursement_class
+
+
+for(i in 1:length(Beneficiary2009_3$DESYNPUF_ID)){
+  if(Beneficiary2009_3$reimbursement_amount[i]<5000){
+    Beneficiary2009_3$reimbursement_class[i] = "low"
+  }else if(Beneficiary2009_3$reimbursement_amount[i]<15000){
+    Beneficiary2009_3$reimbursement_class[i] = "medium"
+  }else if(Beneficiary2009_3$reimbursement_amount[i]<25000){
+    Beneficiary2009_3$reimbursement_class[i] = "medium high"
+  }else {
+    Beneficiary2009_3$reimbursement_class[i] = "high"
+  }
+}
+#
+
+# The getdate function helps get the date of a numeric 
+getdate <- function(x) {
+  date = as.integer(x)
+  year = as.character(floor(date/10000))
+  day = as.character(date%%100)
+  month = as.character(floor((date%%10000)/100))
+  date = paste(year, month, day, sep="-")
+}
+
+# Create an age variable from birth date and death date 
+for(i in 1:length(Beneficiary2009_3$DESYNPUF_ID)){  
+  if( is.na(Beneficiary2009_3$BENE_DEATH_DT[i])){
+    Beneficiary2009_3$BENE_DEATH_DT[i] = paste(Beneficiary2009_3$year[i], "1231", sep="")
+  }
+}  
+
+for(i in 1:length(Beneficiary2009_3$DESYNPUF_ID)){
+  Beneficiary2009_3$age[i] = floor(as.numeric(as.Date(getdate(Beneficiary2009_3$BENE_DEATH_DT[i])) - as.Date(getdate(Beneficiary2009_3$BENE_BIRTH_DT[i])))/365)  
+}
+
+# Ultilize age/gender/state/ and all the chronic disease flags as the features in the cluster model.
+# Create a new set clusterBeneficiary0809_3
+clusterBeneficiary2009_3 = Beneficiary2009_3[,c(4,5,7,13:23,36)]
+
+# Conver the SP_STATE_CODE into area types, like midwest, west, north east, south
+midwest = c(14, 15, 16, 17, 23, 24, 26, 28, 35, 36, 43, 52)
+west = c(3, 5, 6, 13, 27, 29, 32, 38, 46, 50, 53)
+northeast = c(7, 20, 22, 30, 31, 33, 39, 41, 47)
+south = c(1, 4, 8, 10, 11, 18, 19, 21, 25, 34, 37, 42, 44, 45, 49, 51)
+for(i in 1:length(clusterBeneficiary2009_3$BENE_SEX_IDENT_CD)){
+  if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% midwest){
+    clusterBeneficiary2009_3$SP_STATE_CODE[i] = 1
+  }else if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% west){
+    clusterBeneficiary2009_3$SP_STATE_CODE[i] = 2
+  }else if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% northeast){
+    clusterBeneficiary2009_3$SP_STATE_CODE[i] = 3
+  }else if(clusterBeneficiary2009_3$SP_STATE_CODE[i] %in% south){
+    clusterBeneficiary2009_3$SP_STATE_CODE[i] = 4
+  }else{
+    clusterBeneficiary2009_3$SP_STATE_CODE[i] = 5
+  }
+}
+
+# K-means cluster to clusterBeneficiary0809_3, we create 4 clusters
+kc <- kmeans(clusterBeneficiary2009_3, 4)
+table(Beneficiary2009_3$reimbursement_class, kc$cluster)
+
+# Plot the clusters and their centres.
+plot(clusterBeneficiary2009_3[c("age", "SP_STATE_CODE")], col=kc$cluster)
+
+# Build model to predict reimbursement amounts using clusters
+clusterBeneficiary2009_3$cluster = kc$cluster
+clusterBeneficiary2009_3$reimbursement = log(Beneficiary2009_3$reimbursement_amount+1)
+
+# Divide the data in 2009 into 4 clusters
+cluster1Beneficiary2009_3 = subset(clusterBeneficiary2009_3, cluster == 1)
+cluster2Beneficiary2009_3 = subset(clusterBeneficiary2009_3, cluster == 2)
+cluster3Beneficiary2009_3 = subset(clusterBeneficiary2009_3, cluster == 3)
+cluster4Beneficiary2009_3 = subset(clusterBeneficiary2009_3, cluster == 4)
+
+cluster1Beneficiary2009_3$cluster = NULL 
+cluster2Beneficiary2009_3$cluster = NULL 
+cluster3Beneficiary2009_3$cluster = NULL 
+cluster4Beneficiary2009_3$cluster = NULL 
+
+# Build SVM model and evaluate the prediction by SME
+# Divide cluster 1 into a 70/30 train/test split
+# Function MSE calculatet the MSE on log error
+RMSE <- function(error)
+{
+  sqrt(mean(error^2))
+}
+
+# GetClusterRMSE get the RMSE of prediction of dataset with svm
+GetClusterRMSE = function(dataset){
+  trainrows = sample(nrow(dataset),floor(0.7*length(dataset[,1])))
+  cluster_train = dataset[trainrows,]
+  cluster_test = dataset[-trainrows,]
+  
+  # Build the svm model
+  library(e1071)
+  model = svm(cluster_train$reimbursement~., data = cluster_train)
+  predicted <- predict(model, cluster_test)
+  
+  # Evaluate the model with log2(MSE)
+  error = cluster_test$reimbursement - predicted
+  RMSEcluster = RMSE(error)
+  
+  return(RMSEcluster)
+}
+
+
+# Get the whole RMSEclusterError
+RMSEclusterError = GetClusterRMSE(cluster1Beneficiary2009_3) + GetClusterRMSE(cluster2Beneficiary2009_3) +
+                   GetClusterRMSE(cluster3Beneficiary2009_3) + GetClusterRMSE(cluster4Beneficiary2009_3)
+
+cat(RMSEclusterError)
