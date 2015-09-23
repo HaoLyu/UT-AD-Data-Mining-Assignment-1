@@ -12,7 +12,7 @@ b.	(3) Adjust the p-values obtained in parts (a) using the Benjamini & Yekutieli
 c.	(7) Compare your results with the aforementioned recent paper by Boland et al, and briefly comment on differences and similarities in your approach and results. (2-3 paragraphs only).
 
 
-2.	(Total 25 points) Progression of Chronic Kidney Disease (CKD). (use any three classification models of your choice, e.g. logistic regression, SVMs, gradient boosting, random forests,……… and any language you like.  For python fans scikit-learn is a great resource). 
+ 2.	(Total 25 points) Progression of Chronic Kidney Disease (CKD). (use any three classification models of your choice, e.g. logistic regression, SVMs, gradient boosting, random forests,……… and any language you like.  For python fans scikit-learn is a great resource). 
 
 Using the beneficiary summary file, the inpatient claims file, and the outpatient claims file, we will be exploring chronic kidney disease. This is a disease that progresses in severity until it reaches end stage renal disease if not managed properly.
 
@@ -22,7 +22,7 @@ b.	(5) Obtain the contingency table indicating transitions between stages from 2
 
 c.	(15) Using demographic and ICD9 variables, develop a model to predict whether a person with stage V CDK will progress to end stage renal disease. In order to do this you need to first figure out how to obtain a feature vector (values of your independent variables) for each beneficiary.  Note that there can be multiple entries for the same person in the same year. How will you combine such information such that you are in the same feature space for each person? Another key issue is the resolution of the features.  Since there are many ICD9 codes , you are better off using the CCS grouping of ICD9 instead (see icd2singleccs.json on Canvas). This file provides a map from ICD9 codes to CCS codes. Use area under an ROC curve on the test set as the evaluation criterion with a 70/30 train/test split. Also, please review this paper predicting progression of chronic kidney disease to get ideas on how to approach the problem. There are in fact many papers on the subject, so your own literature search could be very valuable.
 
-3.	 (Total 25 points) Cost Prediction 
+  3.	 (Total 25 points) Cost Prediction 
 
 This problem uses the beneficiary summary file. The goal is to predict total reimbursement amount (sum all reimbursement amounts) for patients by year. This problem is very similar to a problem on edX. Feel free to use this edX example as a guide.
 
